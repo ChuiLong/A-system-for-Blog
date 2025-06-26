@@ -1,0 +1,603 @@
+{% extends 'base.html' %}
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .profile-container {
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    .profile-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 2rem;
+      border-radius: var(--border-radius);
+      margin-bottom: 2rem;
+      box-shadow: var(--card-shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .profile-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="stars" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="5" cy="5" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="15" cy="15" r="0.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23stars)"/></svg>');
+      opacity: 0.3;
+    }
+
+    .profile-header h2 {
+      font-weight: 700;
+      margin: 0;
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .avatar-section {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      padding: 2rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .avatar-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+
+    .avatar-container {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 1.5rem;
+    }
+
+    .avatar-image {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 4px solid white;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      transition: var(--transition);
+      object-fit: cover;
+    }
+
+    .avatar-image:hover {
+      transform: scale(1.05);
+      box-shadow: 0 12px 35px rgba(102, 126, 234, 0.3);
+    }
+
+    .avatar-upload-btn {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 0.5rem 1rem;
+      font-weight: 500;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0 auto;
+    }
+
+    .avatar-upload-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      color: white;
+    }
+
+    .user-info-card {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      overflow: hidden;
+      margin-top: 1rem;
+    }
+
+    .card-header-custom {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      padding: 1.5rem;
+      border-bottom: 3px solid #e2e8f0;
+      font-weight: 700;
+      color: #2d3748;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .user-info-body {
+      padding: 1.5rem;
+    }
+
+    .info-item {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #f1f5f9;
+      transition: var(--transition);
+    }
+
+    .info-item:last-child {
+      border-bottom: none;
+    }
+
+    .info-item:hover {
+      background: rgba(102, 126, 234, 0.05);
+      padding-left: 0.5rem;
+      border-radius: 8px;
+    }
+
+    .info-label {
+      font-weight: 600;
+      color: #4a5568;
+      min-width: 80px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .info-value {
+      color: #2d3748;
+      font-weight: 500;
+    }
+
+    .level-badge {
+      background: linear-gradient(135deg, #84fab0, #8fd3f4);
+      color: #2d3748;
+      padding: 0.25rem 0.75rem;
+      border-radius: 15px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .content-section {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      margin-bottom: 2rem;
+      overflow: hidden;
+    }
+
+    .section-header {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      padding: 1.5rem;
+      border-bottom: 3px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .section-header h5 {
+      color: #2d3748;
+      font-weight: 700;
+      margin: 0;
+      font-size: 1.25rem;
+    }
+
+    .section-header i {
+      color: #667eea;
+      font-size: 1.25rem;
+    }
+
+    .content-list {
+      padding: 0;
+      margin: 0;
+    }
+
+    .content-item {
+      padding: 1.5rem;
+      border-bottom: 1px solid #f1f5f9;
+      transition: var(--transition);
+      position: relative;
+    }
+
+    .content-item:last-child {
+      border-bottom: none;
+    }
+
+    .content-item:hover {
+      background: rgba(102, 126, 234, 0.05);
+      padding-left: 2rem;
+    }
+
+    .content-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: #667eea;
+      transform: scaleY(0);
+      transition: var(--transition);
+    }
+
+    .content-item:hover::before {
+      transform: scaleY(1);
+    }
+
+    .content-title {
+      font-weight: 600;
+      color: #2d3748;
+      text-decoration: none;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      display: block;
+      transition: var(--transition);
+    }
+
+    .content-title:hover {
+      color: #667eea;
+      text-decoration: none;
+    }
+
+    .content-meta {
+      color: #718096;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 2rem;
+      color: #718096;
+    }
+
+    .empty-state i {
+      font-size: 3rem;
+      color: #cbd5e0;
+      margin-bottom: 1rem;
+    }
+
+    .empty-state h6 {
+      color: #4a5568;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: rgba(102, 126, 234, 0.05);
+      border-radius: 12px;
+      padding: 1rem;
+      text-align: center;
+      border: 2px solid rgba(102, 126, 234, 0.1);
+      transition: var(--transition);
+    }
+
+    .stat-card:hover {
+      background: rgba(102, 126, 234, 0.1);
+      border-color: rgba(102, 126, 234, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .stat-number {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #667eea;
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+      color: #4a5568;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .profile-header {
+        padding: 1.5rem;
+      }
+      
+      .avatar-section {
+        padding: 1.5rem;
+      }
+      
+      .avatar-image {
+        width: 100px;
+        height: 100px;
+      }
+      
+      .content-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block title %}个人中心{% endblock %}
+
+{% block main %}
+<div class="profile-container">
+  <div class="profile-header">
+    <h2>
+      <i class="bi bi-person-circle"></i>
+      个人中心
+    </h2>
+  </div>
+
+  <div class="row">
+    <!-- 左侧用户信息 -->
+    <div class="col-md-4 mb-4">
+      <div class="avatar-section">
+        {% if is_self %}
+        <div class="avatar-container">
+          <img src="{{ url_for('static', filename='avatars/' ~ user.avatar) }}"
+               class="avatar-image" alt="头像">
+        </div>
+        
+        <form id="avatarForm"
+              action="{{ url_for('upload_avatar') }}"
+              method="post"
+              enctype="multipart/form-data">
+          <input id="avatarInput"
+                 type="file"
+                 name="avatar"
+                 accept="image/*"
+                 style="display:none;">
+          <button id="changeAvatarBtn" type="button" class="avatar-upload-btn">
+            <i class="bi bi-camera"></i>
+            更改头像
+          </button>
+        </form>
+        
+        <script>
+          document.getElementById('changeAvatarBtn').addEventListener('click', function(){
+            document.getElementById('avatarInput').click();
+          });
+          document.getElementById('avatarInput').addEventListener('change', function(){
+            if (this.files.length > 0) {
+              document.getElementById('avatarForm').submit();
+            }
+          });
+        </script>
+        {% else %}
+        <div class="avatar-container">
+          <img src="{{ url_for('static', filename='avatars/' ~ user.avatar) }}"
+               class="avatar-image" alt="头像">
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="user-info-card">
+
+        <div class="card-header-custom">
+          <i class="bi bi-info-circle"></i>
+          基本信息
+        </div>
+        <div class="user-info-body">
+          <div class="info-item">
+            <div class="info-label">
+              <i class="bi bi-person"></i>
+              用户名
+            </div>
+            <div class="info-value level-{{ points|level_class }}">
+              {{ user.username }}
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">
+              <i class="bi bi-envelope"></i>
+              邮箱
+            </div>
+            <div class="info-value">{{ user.email }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">
+              <i class="bi bi-calendar"></i>
+              注册于
+            </div>
+            <div class="info-value">{{ user.registered_at.strftime('%Y-%m-%d') }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">
+              <i class="bi bi-shield"></i>
+              类型
+            </div>
+            <div class="info-value">{{ user.user_type }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">
+              <i class="bi bi-star"></i>
+              积分
+            </div>
+            <div class="info-value">{{ points }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">
+              <i class="bi bi-award"></i>
+              等级
+            </div>
+            <div class="info-value">
+              <span class="level-badge">
+                <i class="bi bi-trophy"></i>
+                {{ points|level_name }}
+              </span>
+            </div>
+          </div>
+          {% if not is_self %}
+          <div class="text-center mt-3">
+            <a href="{{ url_for('start_chat', user_id=user.user_id) }}" 
+               class="btn btn-primary">
+              <i class="bi bi-envelope me-1"></i>发起私信
+            </a>
+          </div>
+          {% endif %}
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- 右侧内容区域 -->
+    <div class="col-md-8">
+      <!-- 统计概览 -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number">{{ my_posts|length }}</div>
+          <div class="stat-label">发布帖子</div>
+        </div>
+        {% if is_self %}
+        <div class="stat-card">
+          <div class="stat-number">{{ liked_posts|length }}</div>
+          <div class="stat-label">点赞帖子</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">{{ favorite_posts|length }}</div>
+          <div class="stat-label">收藏帖子</div>
+        </div>
+        {% endif %}
+        <div class="stat-card">
+          <div class="stat-number">{{ points }}</div>
+          <div class="stat-label">总积分</div>
+        </div>
+      </div>
+
+      <!-- 我的帖子 -->
+      <div class="content-section">
+        <div class="section-header">
+          <i class="bi bi-file-post"></i>
+          <h5>我的帖子</h5>
+        </div>
+        <ul class="content-list list-unstyled">
+          {% for t in my_posts %}
+            <li class="content-item">
+              <a href="{{ url_for('thread_detail', thread_id=t.thread_id) }}" class="content-title">
+                {{ t.title }}
+              </a>
+              <div class="content-meta">
+                <div class="meta-item">
+                  <i class="bi bi-calendar"></i>
+                  <span>{{ t.created_at.strftime('%Y-%m-%d') }}</span>
+                </div>
+                <div class="meta-item">
+                  <i class="bi bi-hand-thumbs-up"></i>
+                  <span>{{ t.like_count }}</span>
+                </div>
+                <div class="meta-item">
+                  <i class="bi bi-chat-dots"></i>
+                  <span>{{ t.comment_count }}</span>
+                </div>
+              </div>
+            </li>
+          {% else %}
+            <li class="empty-state">
+              <i class="bi bi-file-post"></i>
+              <h6>暂无发布</h6>
+              <p>还没有发布任何帖子</p>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      {% if is_self %}
+      <!-- 我点赞的帖子 -->
+      <div class="content-section">
+        <div class="section-header">
+          <i class="bi bi-hand-thumbs-up"></i>
+          <h5>我点赞的帖子</h5>
+        </div>
+        <ul class="content-list list-unstyled">
+          {% for l in liked_posts %}
+            <li class="content-item">
+              <a href="{{ url_for('thread_detail', thread_id=l.thread_id) }}" class="content-title">
+                {{ l.title }}
+              </a>
+              <div class="content-meta">
+                <div class="meta-item">
+                  <i class="bi bi-heart"></i>
+                  <span>点赞于 {{ l.liked_at.strftime('%Y-%m-%d') }}</span>
+                </div>
+              </div>
+            </li>
+          {% else %}
+            <li class="empty-state">
+              <i class="bi bi-heart"></i>
+              <h6>暂无点赞</h6>
+              <p>还没有点赞任何帖子</p>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- 我收藏的帖子 -->
+      <div class="content-section">
+        <div class="section-header">
+          <i class="bi bi-bookmark"></i>
+          <h5>我收藏的帖子</h5>
+        </div>
+        <ul class="content-list list-unstyled">
+          {% for f in favorite_posts %}
+            <li class="content-item">
+              <a href="{{ url_for('thread_detail', thread_id=f.thread_id) }}" class="content-title">
+                {{ f.title }}
+              </a>
+              <div class="content-meta">
+                <div class="meta-item">
+                  <i class="bi bi-bookmark"></i>
+                  <span>收藏于 {{ f.favorited_at.strftime('%Y-%m-%d') }}</span>
+                </div>
+              </div>
+            </li>
+          {% else %}
+            <li class="empty-state">
+              <i class="bi bi-bookmark"></i>
+              <h6>暂无收藏</h6>
+              <p>还没有收藏任何帖子</p>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}合并板块{% endblock %}
+{% block main %}
+<div class="container py-4">
+  <h3>合并板块</h3>
+  <form method="post" action="{{ url_for('admin_merge_boards') }}">
+    <div class="mb-3">
+      <label class="form-label">源板块（将被删除）</label>
+      <select name="src_board" class="form-select" required>
+        <option value="">请选择源板块</option>
+        {% for b in boards %}<option value="{{b.board_id}}">{{b.name}}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">目标板块（合并到此）</label>
+      <select name="dst_board" class="form-select" required>
+        <option value="">请选择目标板块</option>
+        {% for b in boards %}<option value="{{b.board_id}}">{{b.name}}</option>{% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">确认合并</button>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary ms-2">取消</a>
+  </form>
+</div>
+{% endblock %}

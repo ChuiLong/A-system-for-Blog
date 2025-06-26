@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}发布公告{% endblock %}
+
+{% block main %}
+<div class="admin-dashboard">
+  <div class="admin-header">
+    <h3>
+      <i class="bi bi-megaphone-fill"></i>
+      发布新公告
+    </h3>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="admin-section">
+        <div class="section-header">
+          <i class="bi bi-plus-circle"></i>
+          <h5>公告信息</h5>
+        </div>
+        <div style="padding: 2rem;">
+          <form method="post" id="announcementForm">
+            <div class="mb-3">
+              <label for="title" class="form-label">
+                <i class="bi bi-card-text"></i> 公告标题 <span class="text-danger">*</span>
+              </label>
+              <input type="text" class="form-control form-control-lg" 
+                     id="title" name="title" 
+                     placeholder="请输入简洁明了的公告标题..."
+                     maxlength="200" required>
+              <div class="form-text">建议标题控制在20字以内，方便用户快速理解</div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="content" class="form-label">
+                <i class="bi bi-file-text"></i> 公告内容 <span class="text-danger">*</span>
+              </label>
+              <textarea class="form-control" id="content" name="content" 
+                        rows="8" placeholder="请详细描述公告内容..." required></textarea>
+              <div class="form-text">支持换行，建议内容清晰简洁</div>
+            </div>
+            
+            <div class="mb-4">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" 
+                       id="is_pinned" name="is_pinned">
+                <label class="form-check-label" for="is_pinned">
+                  <i class="bi bi-pin-angle-fill text-warning"></i> 
+                  <strong>置顶公告</strong>
+                </label>
+                <div class="form-text">置顶公告将显示在普通公告之前，建议仅对重要公告启用</div>
+              </div>
+            </div>
+            
+            <hr>
+            
+            <div class="d-flex gap-2 justify-content-end">
+              <a href="{{ url_for('admin_announcements') }}" 
+                 class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> 取消
+              </a>
+              <button type="submit" class="btn btn-primary" id="submitBtn">
+                <i class="bi bi-send-fill"></i> 发布公告
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- 预览区域 -->
+      <div class="admin-section mt-4">
+        <div class="section-header">
+          <i class="bi bi-eye"></i>
+          <h5>实时预览</h5>
+        </div>
+        <div style="padding: 2rem;">
+          <div id="preview">
+            <div class="alert alert-info">
+              <h6 class="alert-heading" id="previewTitle">
+                <i class="bi bi-megaphone-fill"></i> 公告标题将在这里显示
+              </h6>
+              <p class="mb-0" id="previewContent">公告内容将在这里显示...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// 实时预览功能
+document.getElementById('title').addEventListener('input', function() {
+  const title = this.value.trim() || '公告标题将在这里显示';
+  const isPinned = document.getElementById('is_pinned').checked;
+  document.getElementById('previewTitle').innerHTML = 
+    (isPinned ? '<i class="bi bi-pin-angle-fill"></i> ' : '<i class="bi bi-megaphone-fill"></i> ') + title;
+});
+
+document.getElementById('content').addEventListener('input', function() {
+  const content = this.value.trim() || '公告内容将在这里显示...';
+  document.getElementById('previewContent').innerText = content;
+});
+
+document.getElementById('is_pinned').addEventListener('change', function() {
+  const title = document.getElementById('title').value.trim() || '公告标题将在这里显示';
+  const isPinned = this.checked;
+  document.getElementById('previewTitle').innerHTML = 
+    (isPinned ? '<i class="bi bi-pin-angle-fill"></i> ' : '<i class="bi bi-megaphone-fill"></i> ') + title;
+  
+  // 切换预览样式
+  const preview = document.querySelector('#preview .alert');
+  if (isPinned) {
+    preview.className = 'alert alert-warning';
+  } else {
+    preview.className = 'alert alert-info';
+  }
+});
+
+// 表单提交处理
+document.getElementById('announcementForm').addEventListener('submit', function(e) {
+  const submitBtn = document.getElementById('submitBtn');
+  const title = document.getElementById('title').value.trim();
+  const content = document.getElementById('content').value.trim();
+  
+  if (!title || !content) {
+    e.preventDefault();
+    alert('请填写标题和内容');
+    return;
+  }
+  
+  // 禁用提交按钮防止重复提交
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> 发布中...';
+});
+</script>
+{% endblock %}

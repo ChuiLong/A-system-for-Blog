@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}公告管理{% endblock %}
+
+{% block main %}
+<div class="admin-dashboard">
+  <div class="admin-header">
+    <h3>
+      <i class="bi bi-megaphone-fill"></i>
+      公告管理
+    </h3>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4>公告列表</h4>
+    <a href="{{ url_for('create_announcement') }}" class="btn btn-primary">
+      <i class="bi bi-plus-circle"></i> 发布新公告
+    </a>
+  </div>
+
+  {% if announcements %}
+    <div class="admin-section">
+      <div class="section-header">
+        <i class="bi bi-list-task"></i>
+        <h5>所有公告</h5>
+      </div>
+      {% for ann in announcements %}
+        <div class="admin-list-item d-flex justify-content-between align-items-start" id="announcement-{{ ann.announcement_id }}">
+          <div class="item-content">
+            <div class="item-title d-flex align-items-center">
+              {% if ann.is_pinned %}
+                <span class="badge bg-warning text-dark me-2">
+                  <i class="bi bi-pin-angle-fill"></i> 置顶
+                </span>
+              {% endif %}
+              {{ ann.title }}
+            </div>
+            <div class="item-meta">
+              <div class="meta-item">
+                <i class="bi bi-person"></i>
+                <span>{{ ann.author_name }}</span>
+              </div>
+              <div class="meta-item">
+                <i class="bi bi-calendar"></i>
+                <span>{{ ann.created_at.strftime('%Y-%m-%d') }}</span>
+              </div>
+              <div class="meta-item">
+                <i class="bi bi-clock"></i>
+                <span>{{ ann.created_at.strftime('%H:%M') }}</span>
+              </div>
+              <div class="meta-item">
+                {% if ann.is_active %}
+                  <span class="badge bg-success">
+                    <i class="bi bi-check-circle"></i> 启用
+                  </span>
+                {% else %}
+                  <span class="badge bg-danger">
+                    <i class="bi bi-x-circle"></i> 停用
+                  </span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="mt-2 text-muted">
+              {{ ann.content[:100] }}{% if ann.content|length > 100 %}...{% endif %}
+            </div>
+          </div>
+          <div class="item-actions d-flex gap-2">
+            <button class="btn btn-sm btn-outline-primary" 
+                    onclick="toggleAnnouncement('{{ ann.announcement_id }}')"
+                    title="{% if ann.is_active %}停用{% else %}启用{% endif %}">
+              {% if ann.is_active %}
+                <i class="bi bi-pause-fill"></i>
+              {% else %}
+                <i class="bi bi-play-fill"></i>
+              {% endif %}
+            </button>
+            <button class="btn btn-sm btn-outline-danger" 
+                    onclick="deleteAnnouncement('{{ ann.announcement_id }}')"
+                    title="删除">
+              <i class="bi bi-trash-fill"></i>
+            </button>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-center py-5">
+      <i class="bi bi-megaphone display-1 text-muted"></i>
+      <h4 class="text-muted mt-3">暂无公告</h4>
+      <p class="text-muted">点击上方"发布新公告"开始创建第一条公告</p>
+    </div>
+  {% endif %}
+</div>
+
+<script>
+function toggleAnnouncement(id) {
+  const btn = event.target.closest('button');
+  btn.disabled = true;
+  
+  fetch(`/admin/announcements/${id}/toggle`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      location.reload();
+    } else {
+      alert('操作失败: ' + (data.error || '未知错误'));
+      btn.disabled = false;
+    }
+  })
+  .catch(error => {
+    alert('网络错误，请重试');
+    btn.disabled = false;
+  });
+}
+
+function deleteAnnouncement(id) {
+  if (!confirm('确定要删除这条公告吗？此操作不可撤销！')) {
+    return;
+  }
+  
+  const btn = event.target.closest('button');
+  btn.disabled = true;
+  
+  fetch(`/admin/announcements/${id}/delete`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      const row = document.getElementById(`announcement-${id}`);
+      row.style.transition = 'opacity 0.3s';
+      row.style.opacity = '0';
+      setTimeout(() => {
+        row.remove();
+        const container = document.querySelector('.admin-section');
+        if (!container.querySelector('.admin-list-item')) {
+          location.reload();
+        }
+      }, 300);
+    } else {
+      alert('删除失败: ' + (data.error || '未知错误'));
+      btn.disabled = false;
+    }
+  })
+  .catch(error => {
+    alert('网络错误，请重试');
+    btn.disabled = false;
+  });
+}
+</script>
+{% endblock %}

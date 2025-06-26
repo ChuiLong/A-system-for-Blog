@@ -1,0 +1,317 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+<style>
+  .login-container {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    animation: fadeInUp 0.8s ease-out;
+  }
+
+  .login-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .login-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    position: relative;
+  }
+
+  .login-header h3 {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .login-header .subtitle {
+    color: #718096;
+    font-size: 0.95rem;
+  }
+
+  .login-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+  }
+
+  .login-icon i {
+    color: white;
+    font-size: 2rem;
+  }
+
+  .form-floating {
+    position: relative;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-floating .form-control {
+    background: rgba(248, 250, 252, 0.8);
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1rem 1rem 1rem 3rem;
+    font-size: 1rem;
+    transition: var(--transition);
+    backdrop-filter: blur(10px);
+  }
+
+  .form-floating .form-control:focus {
+    background: white;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .form-floating label {
+    padding-left: 3rem;
+    color: #718096;
+    font-weight: 500;
+  }
+
+  .form-floating .form-control:focus ~ label,
+  .form-floating .form-control:not(:placeholder-shown) ~ label {
+    color: #667eea;
+    font-weight: 600;
+  }
+
+  .input-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #a0aec0;
+    z-index: 10;
+    transition: var(--transition);
+  }
+
+  .form-floating .form-control:focus ~ .input-icon {
+    color: #667eea;
+  }
+
+  .form-check {
+    margin-bottom: 2rem;
+  }
+
+  .form-check .form-check-input {
+    border: 2px solid #e2e8f0;
+    border-radius: 6px;
+    transition: var(--transition);
+  }
+
+  .form-check .form-check-input:checked {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-color: #667eea;
+  }
+
+  .form-check .form-check-label {
+    color: #4a5568;
+    font-weight: 500;
+    margin-left: 0.5rem;
+  }
+
+  .btn-login {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 25px;
+    padding: 0.875rem 2rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: white;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .btn-login::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+  }
+
+  .btn-login:hover::before {
+    left: 100%;
+  }
+
+  .btn-login:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  }
+
+  .login-footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .login-footer a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+    transition: var(--transition);
+  }
+
+  .login-footer a:hover {
+    color: #764ba2;
+    text-decoration: underline;
+  }
+
+  .decorative-elements {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+    overflow: hidden;
+  }
+
+  .decorative-elements::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 50%);
+    animation: rotate 30s linear infinite;
+  }
+
+  .decorative-elements::after {
+    content: '';
+    position: absolute;
+    bottom: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(118, 75, 162, 0.1) 0%, transparent 50%);
+    animation: rotate 40s linear infinite reverse;
+  }
+
+  @keyframes rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .login-card {
+      margin: 1rem;
+      border-radius: 16px;
+    }
+    
+    .login-icon {
+      width: 60px;
+      height: 60px;
+    }
+    
+    .login-icon i {
+      font-size: 1.5rem;
+    }
+    
+    .login-header h3 {
+      font-size: 1.75rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block title %}登录{% endblock %}
+
+{% block main %}
+<div class="decorative-elements"></div>
+<div class="container login-container">
+  <div class="row justify-content-center w-100">
+    <div class="col-md-6 col-lg-4">
+      <div class="card login-card border-0 shadow-lg">
+        <div class="card-body p-5">
+          <div class="login-header">
+            <div class="login-icon">
+              <i class="bi bi-person-circle"></i>
+            </div>
+            <h3>欢迎回来</h3>
+            <p class="subtitle">登录到你的账户，继续探索精彩内容</p>
+          </div>
+
+          <form action="" method="post" novalidate>
+            <div class="form-floating">
+              <input type="text" class="form-control" id="username" name="username"
+                     placeholder="用户名 / 手机 / 邮箱" required>
+              <label for="username">用户名 / 手机 / 邮箱</label>
+              <i class="bi bi-person input-icon"></i>
+            </div>
+
+            <div class="form-floating">
+              <input type="password" class="form-control" id="password"
+                     name="password" placeholder="密码" required>
+              <label for="password">密码</label>
+              <i class="bi bi-lock input-icon"></i>
+            </div>
+
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="remember">
+              <label class="form-check-label" for="remember">
+                记住我的登录状态
+              </label>
+            </div>
+
+            <button class="btn btn-login" type="submit">
+              <i class="bi bi-box-arrow-in-right me-2"></i>
+              立即登录
+            </button>
+          </form>
+          
+          <div class="login-footer">
+            <small>还没有账号？<a href="{{ url_for('register') }}">立即注册</a></small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

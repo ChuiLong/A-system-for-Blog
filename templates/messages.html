@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}私信{% endblock %}
+
+{% block main %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-10">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="d-flex align-items-center">
+          <i class="bi bi-envelope-fill text-primary me-2"></i>
+          私信
+          {% if total_unread > 0 %}
+            <span class="badge bg-danger ms-2">{{ total_unread }} 未读</span>
+          {% endif %}
+        </h2>
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left me-1"></i>返回首页
+        </a>
+      </div>
+
+      {% if conversations %}
+        <div class="messages-list">
+          {% for conv in conversations %}
+          <div class="message-item border rounded mb-3 p-3 {% if conv.unread_count > 0 %}bg-light border-primary{% endif %}">
+            <div class="d-flex align-items-center">
+              <div class="avatar-container me-3">
+                <img src="{{ url_for('static', filename='avatars/' + conv.other_avatar) }}"
+                     class="rounded-circle" width="50" height="50" alt="头像">
+              </div>
+              
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                  <h6 class="mb-0">
+                    <a href="{{ url_for('chat_with_user', other_user_id=conv.other_user_id) }}"
+                       class="text-decoration-none text-dark fw-bold">
+                      {{ conv.other_username }}
+                    </a>
+                  </h6>
+                  <div class="d-flex align-items-center">
+                    {% if conv.unread_count > 0 %}
+                      <span class="badge bg-danger me-2">{{ conv.unread_count }}</span>
+                    {% endif %}
+                    <small class="text-muted">
+                      {{ conv.last_message_time.strftime('%m-%d %H:%M') }}
+                    </small>
+                  </div>
+                </div>
+                
+                <p class="mb-0 text-muted">
+                  {{ conv.last_content[:50] }}{% if conv.last_content|length > 50 %}...{% endif %}
+                </p>
+              </div>
+              
+              <div class="ms-3">
+                <a href="{{ url_for('chat_with_user', other_user_id=conv.other_user_id) }}"
+                   class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-chat-dots"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center py-5">
+          <i class="bi bi-envelope display-1 text-muted"></i>
+          <h4 class="text-muted mt-3">暂无私信</h4>
+          <p class="text-muted">您还没有任何私信对话</p>
+          <a href="{{ url_for('index') }}" class="btn btn-primary">
+            <i class="bi bi-house me-1"></i>返回首页
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<style>
+.message-item {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.message-item:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+}
+
+.avatar-container {
+  flex-shrink: 0;
+}
+
+.messages-list .message-item:last-child {
+  margin-bottom: 0;
+}
+</style>
+{% endblock %}

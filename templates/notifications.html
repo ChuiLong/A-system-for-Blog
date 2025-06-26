@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block main %}
+<div class="container py-4">
+  <h3>我的通知</h3>
+  <button id="markReadBtn" class="btn btn-sm btn-outline-secondary mb-3">
+    全部标为已读
+  </button>
+  <ul class="list-group">
+    {% for n in notifications %}
+    <li class="list-group-item {% if not n.is_read %}fw-bold{% endif %}">
+      新评论：
+      <a href="{{ url_for('thread_detail', thread_id=n.thread_id) }}#comment-{{ n.comment_id }}">
+        查看
+      </a>
+      <small class="text-muted float-end">
+        {{ n.created_at.strftime('%Y-%m-%d %H:%M') }}
+      </small>
+    </li>
+    {% else %}
+    <li class="list-group-item text-center text-muted">暂无通知</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  document.getElementById('markReadBtn').addEventListener('click', () => {
+    fetch('/api/notifications/mark_read', {method:'POST'})
+      .then(r => r.json()).then(d => { if (d.success) location.reload(); });
+  });
+</script>
+{% endblock %}

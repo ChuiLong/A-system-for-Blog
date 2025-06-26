@@ -1,0 +1,547 @@
+{% extends 'base.html' %}
+
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    .thread-detail-container {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      overflow: hidden;
+      margin-bottom: 2rem;
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    .thread-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .thread-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+      opacity: 0.3;
+    }
+
+    .thread-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 2;
+      line-height: 1.3;
+    }
+
+    .thread-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      position: relative;
+      z-index: 2;
+      opacity: 0.9;
+    }
+
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .thread-content-container {
+      padding: 2rem;
+    }
+
+    .thread-content {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-left: 4px solid #667eea;
+      line-height: 1.7;
+      font-size: 1.1rem;
+      color: #2d3748;
+    }
+
+    .action-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      background: rgba(102, 126, 234, 0.05);
+      border-radius: 12px;
+    }
+
+    .btn-action {
+      border-radius: 20px;
+      padding: 0.5rem 1rem;
+      font-weight: 500;
+      transition: var(--transition);
+      border: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-action:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-outline-primary:hover {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-color: #667eea;
+    }
+
+    .btn-outline-warning:hover {
+      background: linear-gradient(135deg, #ffecd2, #fcb69f);
+      border-color: #f6ad55;
+      color: #744210;
+    }
+
+    .btn-outline-secondary:hover {
+      background: linear-gradient(135deg, #e2e8f0, #cbd5e0);
+      border-color: #a0aec0;
+      color: #2d3748;
+    }
+
+    .btn-outline-danger:hover {
+      background: linear-gradient(135deg, #fc466b, #3f5efb);
+      border-color: #fc466b;
+      color: white;
+    }
+
+    .comments-section {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .comments-header {
+      border-bottom: 3px solid #e2e8f0;
+      padding-bottom: 1rem;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .comments-header h4 {
+      color: #2d3748;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .comment-item {
+      background: rgba(248, 250, 252, 0.5);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      border-left: 4px solid #e2e8f0;
+      transition: var(--transition);
+      position: relative;
+    }
+
+    .comment-item:hover {
+      background: rgba(102, 126, 234, 0.05);
+      border-left-color: #667eea;
+      transform: translateX(4px);
+    }
+
+    .comment-item.is-reply {
+      margin-left: 2rem;
+      border-left-color: #a0aec0;
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .comment-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .comment-user {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #4a5568;
+      font-weight: 500;
+    }
+
+    .comment-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .reply-btn {
+      color: #667eea;
+      padding: 0.25rem 0.75rem;
+      border-radius: 15px;
+      background: rgba(102, 126, 234, 0.1);
+      transition: var(--transition);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .reply-btn:hover {
+      background: rgba(102, 126, 234, 0.2);
+      color: #764ba2;
+      transform: scale(1.05);
+    }
+
+    .comment-content {
+      color: #2d3748;
+      line-height: 1.6;
+      font-size: 1rem;
+    }
+
+    .add-comment-section {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      padding: 2rem;
+    }
+
+    .add-comment-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .add-comment-header h5 {
+      color: #2d3748;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .comment-form textarea {
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 1rem;
+      background: #f8fafc;
+      transition: var(--transition);
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .comment-form textarea:focus {
+      border-color: #667eea;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .reply-form {
+      background: rgba(102, 126, 234, 0.05);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-top: 1rem;
+      border: 2px solid rgba(102, 126, 234, 0.1);
+    }
+
+    .reply-info {
+      color: #667eea;
+      font-weight: 500;
+      margin-bottom: 0.75rem;
+    }
+
+    .login-prompt {
+      background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+      border-left: 4px solid #667eea;
+    }
+
+    .login-prompt a {
+      color: #667eea;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .login-prompt a:hover {
+      color: #764ba2;
+      text-decoration: underline;
+    }
+
+    .empty-comments {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #718096;
+    }
+
+    .empty-comments i {
+      font-size: 3rem;
+      color: #cbd5e0;
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      .thread-header {
+        padding: 1.5rem;
+      }
+      
+      .thread-title {
+        font-size: 1.5rem;
+      }
+      
+      .thread-content-container {
+        padding: 1.5rem;
+      }
+      
+      .comment-item.is-reply {
+        margin-left: 1rem;
+      }
+      
+      .action-buttons {
+        justify-content: center;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block title %}{{ thread.title }}{% endblock %}
+
+{% block main %}
+  <!-- 帖子主体 -->
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-10 col-xl-8">
+        <div class="thread-detail-container">
+          <div class="thread-header">
+            <h2 class="thread-title">{{ thread.title }}</h2>
+            <div class="thread-meta">
+              <div class="meta-item">
+                <i class="bi bi-person-circle"></i>
+                <a href="{{ url_for('user_space', uid=thread.author_id) }}"
+                   class="level-{{ thread.author_points|level_class }}" 
+                   style="color: white; text-decoration: none;">
+                  {{ thread.username }}
+                </a>
+                <small>({{ thread.author_points }}分, {{ thread.author_points|level_name }})</small>
+              </div>
+              <div class="meta-item">
+                <i class="bi bi-clock"></i>
+                {{ thread.created_at.strftime('%Y-%m-%d %H:%M') }}
+              </div>
+            </div>
+          </div>
+
+          <div class="thread-content-container">
+            <div class="thread-content">{{ thread.content }}</div>
+
+            <div class="action-buttons">
+              <!-- 点赞按钮 -->
+              <form action="{{ url_for('like_thread', thread_id=thread.thread_id) }}" method="post" class="d-inline">
+                <button type="submit" class="btn btn-outline-primary btn-action">
+                  <i class="bi bi-hand-thumbs-up"></i>
+                  点赞 ({{ thread.like_count }})
+                </button>
+              </form>
+
+              <!-- 收藏/取消收藏 -->
+              {% if is_favorited %}
+              <form action="{{ url_for('unfavorite_thread', thread_id=thread.thread_id) }}"
+                    method="post" class="d-inline">
+                <button class="btn btn-outline-secondary btn-action">
+                  <i class="bi bi-bookmark-x"></i> 取消收藏
+                </button>
+              </form>
+              {% else %}
+              <form action="{{ url_for('favorite_thread', thread_id=thread.thread_id) }}"
+                    method="post" class="d-inline">
+                <button class="btn btn-outline-warning btn-action">
+                  <i class="bi bi-bookmark"></i> 收藏
+                </button>
+              </form>
+              {% endif %}
+
+              <!-- 删除按钮 -->
+              {% if session.user_id == thread.author_id %}
+              <form action="{{ url_for('delete_thread', thread_id=thread.thread_id) }}"
+                    method="post" class="d-inline"
+                    onsubmit="return confirm('确定要删除此帖子吗？');">
+                <button type="submit" class="btn btn-outline-danger btn-action">
+                  <i class="bi bi-trash"></i> 删除
+                </button>
+              </form>
+              {% endif %}
+
+              <!-- 管理员删除 -->
+              {% if session.user_type == 'admin' %}
+              <form action="{{ url_for('admin_delete_thread', thread_id=thread.thread_id) }}?next={{ url_for('index') }}"
+                    method="post" class="d-inline"
+                    onsubmit="return confirm('管理员：删除此帖子及所有评论？');">
+                <button type="submit" class="btn btn-outline-danger btn-action">
+                  <i class="bi bi-shield-lock"></i> 管理删除
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- 评论区 -->
+        <div class="comments-section">
+          <div class="comments-header">
+            <i class="bi bi-chat-dots-fill"></i>
+            <h4>评论 ({{ thread.comment_count }})</h4>
+          </div>
+
+          {% macro render_comments(nodes) %}
+            {% for node in nodes %}
+              {% set c = node.data %}
+              <div id="comment-{{ c.comment_id }}"
+                   class="comment-item {% if c.parent_comment_id %}is-reply{% endif %}">
+                <div class="comment-meta">
+                  <div class="comment-user">
+                    <i class="bi bi-person"></i> 
+                    <strong>{{ c.username }}</strong>
+                    <span>·</span>
+                    <i class="bi bi-clock"></i> 
+                    {{ c.created_at.strftime('%Y-%m-%d %H:%M') }}
+                  </div>
+                  <div class="comment-actions">
+                    <a href="#" class="reply-btn"
+                       data-comment-id="{{ c.comment_id }}"
+                       data-username="{{ c.username }}">
+                      <i class="bi bi-reply-fill"></i> 回复
+                    </a>
+                    {% if session.user_type == 'admin' %}
+                    <form action="{{ url_for('admin_delete_comment', comment_id=c.comment_id) }}?next={{ url_for('thread_detail', thread_id=thread.thread_id) }}"
+                          method="post" class="d-inline"
+                          onsubmit="return confirm('管理员：删除此评论及其所有回复？');">
+                      <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </form>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="comment-content">{{ c.content }}</div>
+                {% if node.children %}
+                  {{ render_comments(node.children) }}
+                {% endif %}
+                <div class="reply-container"></div>
+              </div>
+            {% endfor %}
+          {% endmacro %}
+
+          <div>
+            {% if comments %}
+              {{ render_comments(comments) }}
+            {% else %}
+              <div class="empty-comments">
+                <i class="bi bi-chat"></i>
+                <p>还没有评论，来发表第一个评论吧！</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- 添加评论 -->
+        {% if session.user_id %}
+        <div class="add-comment-section">
+          <div class="add-comment-header">
+            <i class="bi bi-plus-circle"></i>
+            <h5>添加评论</h5>
+          </div>
+          <form method="post" class="comment-form">
+            <div class="mb-3">
+              <textarea name="content" class="form-control" rows="4"
+                        placeholder="写下你的评论，分享你的想法..." required></textarea>
+            </div>
+            <button class="btn btn-primary">
+              <i class="bi bi-send me-2"></i>提交评论
+            </button>
+          </form>
+        </div>
+        {% else %}
+        <div class="login-prompt">
+          <i class="bi bi-info-circle me-2"></i>
+          请先 <a href="{{ url_for('login') }}">登录</a> 后发表评论。
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {# 隐藏的回复表单模板 #}
+  <div id="reply-form-template" class="d-none">
+    <form method="post" class="reply-form">
+      <p class="reply-info"></p>
+      <textarea name="content" class="form-control mb-2"
+                rows="3" placeholder="写下你的回复..." required></textarea>
+      <input type="hidden" name="parent_comment_id" value="">
+      <button class="btn btn-sm btn-primary me-2">
+        <i class="bi bi-send me-1"></i>提交
+      </button>
+      <button type="button" class="btn btn-sm btn-secondary cancel-reply">
+        <i class="bi bi-x me-1"></i>取消
+      </button>
+    </form>
+  </div>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', function(){
+    let activeBox = null;
+
+    document.querySelectorAll('.reply-btn').forEach(btn => {
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        const commentItem = btn.closest('.comment-item');
+        const container = commentItem.querySelector('.reply-container');
+
+        // 移除旧的回复框
+        if(activeBox){
+          activeBox.remove();
+          activeBox = null;
+        }
+
+        // 克隆模板
+        const tpl = document.getElementById('reply-form-template');
+        const box = tpl.cloneNode(true);
+        box.id = ''; 
+        box.classList.remove('d-none');
+        const form = box.querySelector('form.reply-form');
+
+        // 填写提示和隐藏域
+        const username = btn.dataset.username;
+        box.querySelector('.reply-info').innerHTML = 
+          `<i class="bi bi-reply me-1"></i>正在回复 <strong>@${username}</strong>`;
+        form.parent_comment_id.value = btn.dataset.commentId;
+        form.action = window.location.pathname;
+
+        // 绑定取消按钮
+        box.querySelector('.cancel-reply').addEventListener('click', () => {
+          box.remove();
+          activeBox = null;
+        });
+
+        // 插入并聚焦
+        container.appendChild(box);
+        box.querySelector('textarea').focus();
+        activeBox = box;
+      });
+    });
+  });
+  </script>
+{% endblock %}

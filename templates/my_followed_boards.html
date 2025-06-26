@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}我关注的板块{% endblock %}
+
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .followed-boards-container {
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    .page-header {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+      color: white;
+      padding: 2rem;
+      border-radius: var(--border-radius);
+      margin-bottom: 2rem;
+      box-shadow: var(--card-shadow);
+    }
+
+    .followed-board-card {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+      transition: var(--transition);
+      border-left: 4px solid #48bb78;
+    }
+
+    .followed-board-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--card-shadow-hover);
+    }
+
+    .board-card-content {
+      padding: 1.5rem;
+    }
+
+    .board-name {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 0.5rem;
+    }
+
+    .follow-time {
+      color: #718096;
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+    }
+
+    .board-stats {
+      display: flex;
+      gap: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #718096;
+      font-size: 0.875rem;
+    }
+
+    .stat-item i {
+      color: #48bb78;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block main %}
+<div class="container followed-boards-container">
+  <div class="page-header">
+    <h2 class="mb-3">
+      <i class="bi bi-heart-fill me-2"></i>
+      我关注的板块
+    </h2>
+    <div class="d-flex justify-content-between align-items-center">
+      <p class="mb-0">共关注了 {{ followed_boards|length }} 个板块</p>
+      <a href="{{ url_for('all_boards') }}" class="btn btn-light">
+        <i class="bi bi-plus me-1"></i>发现更多板块
+      </a>
+    </div>
+  </div>
+
+  {% if followed_boards %}
+    {% for board in followed_boards %}
+    <div class="followed-board-card">
+      <div class="board-card-content">
+        <div class="d-flex justify-content-between align-items-start">
+          <div class="flex-grow-1">
+            <h4 class="board-name">
+              <a href="{{ url_for('index', board_id=board.board_id) }}" 
+                 class="text-decoration-none text-dark">
+                {{ board.name }}
+              </a>
+            </h4>
+            <div class="follow-time">
+              <i class="bi bi-clock me-1"></i>
+              关注于 {{ board.follow_time.strftime('%Y年%m月%d日') }}
+            </div>
+            <div class="board-description text-muted mb-3">
+              {{ board.description or '这个板块还没有描述信息。' }}
+            </div>
+            <div class="board-stats">
+              <div class="stat-item">
+                <i class="bi bi-file-post"></i>
+                <span>{{ board.thread_count }} 帖子</span>
+              </div>
+              <div class="stat-item">
+                <i class="bi bi-people"></i>
+                <span>{{ board.follower_count }} 关注者</span>
+              </div>
+            </div>
+          </div>
+          <div class="ms-3">
+            <a href="{{ url_for('index', board_id=board.board_id) }}" 
+               class="btn btn-primary mb-2">
+              <i class="bi bi-arrow-right me-1"></i>进入板块
+            </a>
+            <form method="POST" action="{{ url_for('unfollow_board', board_id=board.board_id) }}" 
+                  class="d-inline" onsubmit="return confirm('确定要取消关注这个板块吗？')">
+              <button type="submit" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-heart-break me-1"></i>取消关注
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="text-center py-5">
+      <i class="bi bi-heart display-1 text-muted"></i>
+      <h4 class="text-muted mt-3">还没有关注任何板块</h4>
+      <p class="text-muted">关注感兴趣的板块，获取最新动态</p>
+      <a href="{{ url_for('all_boards') }}" class="btn btn-primary">
+        <i class="bi bi-search me-1"></i>浏览所有板块
+      </a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

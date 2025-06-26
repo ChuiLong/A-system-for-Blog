@@ -1,0 +1,894 @@
+{% extends 'base.html' %}
+
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .board-bar {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border-radius: 0 0 20px 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+    }
+
+    .nav-pills .nav-link {
+      border-radius: 25px;
+      padding: 0.75rem 1.5rem;
+      margin: 0 0.25rem;
+      font-weight: 500;
+      transition: var(--transition);
+      background: transparent;
+      border: 2px solid transparent;
+      white-space: nowrap;
+    }
+
+    .nav-pills .nav-link:not(.active) {
+      color: #6c757d;
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .nav-pills .nav-link:not(.active):hover {
+      background: rgba(102, 126, 234, 0.1);
+      color: #667eea;
+      border-color: rgba(102, 126, 234, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .nav-pills .nav-link.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .page-title {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      margin-bottom: 2rem;
+      position: relative;
+    }
+
+    .page-title::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 0;
+      width: 60px;
+      height: 4px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-radius: 2px;
+    }
+
+    .thread-card {
+      background: white;
+      border: none;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      transition: var(--transition);
+      margin-bottom: 1rem;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .thread-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+
+    .thread-card:hover {
+      box-shadow: var(--card-shadow-hover);
+      transform: translateY(-4px);
+    }
+
+    .thread-title {
+      color: #2d3748;
+      font-weight: 600;
+      text-decoration: none;
+      font-size: 1.25rem;
+      line-height: 1.4;
+      transition: var(--transition);
+      display: block;
+      margin-bottom: 0.75rem;
+    }
+
+    .thread-title:hover {
+      color: #667eea;
+      text-decoration: none;
+    }
+
+    .thread-meta {
+      color: #718096;
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+    }
+
+    .thread-meta a {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 500;
+      transition: var(--transition);
+    }
+
+    .thread-meta a:hover {
+      color: #764ba2;
+      text-decoration: underline;
+    }
+
+    .user-badge {
+      background: linear-gradient(135deg, #84fab0, #8fd3f4);
+      color: #2d3748;
+      padding: 0.25rem 0.75rem;
+      border-radius: 15px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+    }
+
+    .thread-excerpt {
+      color: #4a5568;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .thread-stats {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-width: 80px;
+      padding: 1rem;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.5rem;
+      padding: 0.5rem;
+      background: rgba(102, 126, 234, 0.1);
+      border-radius: 20px;
+      min-width: 60px;
+      font-weight: 500;
+      color: #667eea;
+      transition: var(--transition);
+    }
+
+    .stat-item:hover {
+      background: rgba(102, 126, 234, 0.2);
+      transform: scale(1.05);
+    }
+
+    .stat-item i {
+      margin-right: 0.25rem;
+      font-size: 0.875rem;
+    }
+
+    .stat-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+    }
+
+    .empty-state i {
+      font-size: 4rem;
+      color: #cbd5e0;
+      margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+      color: #4a5568;
+      margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+      color: #718096;
+    }
+
+    .thread-content {
+      padding: 1.5rem;
+      flex-grow: 1;
+    }
+
+    .board-nav-container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 1rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      z-index: 1020;
+      position: relative;
+    }
+
+    .search-highlight {
+      background: linear-gradient(135deg, #ffecd2, #fcb69f);
+      padding: 1rem 1.5rem;
+      border-radius: var(--border-radius);
+      margin-bottom: 2rem;
+      border-left: 4px solid #667eea;
+      box-shadow: var(--card-shadow);
+    }
+
+    .board-title {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: var(--border-radius);
+      margin-bottom: 2rem;
+      box-shadow: var(--card-shadow);
+      display: flex;
+      align-items: center;
+    }
+
+    .board-title i {
+      margin-right: 0.75rem;
+      font-size: 1.25rem;
+    }
+
+    /* 公告栏样式 */
+    .announcement-sidebar {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      margin-bottom: 2rem;
+      overflow: hidden;
+      position: sticky;
+      top: 2rem;
+    }
+
+    .announcement-header {
+      background: linear-gradient(135deg, #ffecd2, #fcb69f);
+      padding: 1.5rem;
+      border-bottom: 3px solid #f6ad55;
+    }
+
+    .announcement-header h4 {
+      color: #744210;
+      font-weight: 700;
+    }
+
+    .announcement-header i {
+      color: #ed8936;
+    }
+
+    .announcement-count {
+      background: rgba(116, 66, 16, 0.2);
+      color: #744210;
+      padding: 0.25rem 0.5rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: auto;
+    }
+
+    .announcements-list {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .announcement-card {
+      padding: 1.25rem;
+      border-bottom: 1px solid #f1f5f9;
+      transition: var(--transition);
+      position: relative;
+    }
+
+    .announcement-card:last-child {
+      border-bottom: none;
+    }
+
+    .announcement-card:hover {
+      background: rgba(102, 126, 234, 0.02);
+    }
+
+    .announcement-card.pinned {
+      background: rgba(255, 236, 210, 0.3);
+      border-left: 4px solid #ed8936;
+    }
+
+    .announcement-card.pinned:hover {
+      background: rgba(255, 236, 210, 0.5);
+    }
+
+    .announcement-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      line-height: 1.3;
+    }
+
+    .announcement-title i {
+      color: #667eea;
+      font-size: 0.875rem;
+    }
+
+    .announcement-card.pinned .announcement-title i {
+      color: #ed8936;
+    }
+
+    .pinned-badge {
+      background: linear-gradient(135deg, #ffa726, #fb8c00);
+      color: white;
+      padding: 0.125rem 0.5rem;
+      border-radius: 10px;
+      font-size: 0.625rem;
+      font-weight: 600;
+    }
+
+    .announcement-text {
+      color: #4a5568;
+      font-size: 0.875rem;
+      line-height: 1.5;
+      margin-bottom: 0.75rem;
+    }
+
+    .expand-btn {
+      background: none;
+      border: none;
+      color: #667eea;
+      font-size: 0.75rem;
+      padding: 0;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .expand-btn:hover {
+      color: #764ba2;
+    }
+
+    .full-content {
+      background: rgba(248, 250, 252, 0.8);
+      padding: 0.75rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      line-height: 1.5;
+    }
+
+    .announcement-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      font-size: 0.75rem;
+      color: #718096;
+    }
+
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .meta-item i {
+      font-size: 0.625rem;
+    }
+
+    /* 侧边栏小组件样式 */
+    .sidebar-widget {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      margin-bottom: 2rem;
+      overflow: hidden;
+    }
+
+    .widget-header {
+      background: linear-gradient(135deg, #84fab0, #8fd3f4);
+      padding: 1.25rem;
+      border-bottom: 3px solid #38b2ac;
+    }
+
+    .widget-header h5 {
+      color: #2d3748;
+      font-weight: 700;
+    }
+
+    .widget-header i {
+      color: #2c7a7b;
+    }
+
+    .widget-content {
+      padding: 1.25rem;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .stat-row:last-child {
+      border-bottom: none;
+    }
+
+    .stat-label {
+      color: #4a5568;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .stat-value {
+      color: #2d3748;
+      font-weight: 700;
+      padding: 0.25rem 0.5rem;
+      background: rgba(102, 126, 234, 0.1);
+      border-radius: 8px;
+      font-size: 0.875rem;
+    }
+
+    @media (max-width: 768px) {
+      .thread-card {
+        margin-bottom: 1rem;
+      }
+      
+      .thread-stats {
+        flex-direction: row;
+        padding: 1rem;
+        border-top: 1px solid #e2e8f0;
+        margin-top: 1rem;
+      }
+      
+      .stat-item {
+        margin-bottom: 0;
+        margin-right: 1rem;
+      }
+      
+      .stat-item:last-child {
+        margin-right: 0;
+      }
+
+      /* 移动端侧边栏调整 */
+      .announcement-sidebar {
+        position: static;
+        margin-bottom: 2rem;
+      }
+
+      .announcements-list {
+        max-height: 300px;
+      }
+
+      .announcement-card {
+        padding: 1rem;
+      }
+
+      .widget-content {
+        padding: 1rem;
+      }
+    }
+    .nav-pills .nav-link.followed-board {
+      background: rgba(220, 53, 69, 0.1) !important;
+      border: 2px solid rgba(220, 53, 69, 0.3) !important;
+      color: #dc3545 !important;
+      font-weight: 600;
+      position: relative;
+    }
+
+    .nav-pills .nav-link.followed-board:hover {
+      background: rgba(220, 53, 69, 0.2) !important;
+      border-color: rgba(220, 53, 69, 0.5) !important;
+      color: #dc3545 !important;
+      transform: translateY(-2px);
+    }
+
+    .nav-pills .nav-link.followed-board.active {
+      background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+      color: white !important;
+      border-color: #dc3545 !important;
+      box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+    }
+
+    .nav-pills .nav-link.followed-board .text-danger {
+      color: inherit !important;
+    }
+
+    /* 关注板块的心形图标动画 */
+    .nav-pills .nav-link.followed-board:hover .bi-heart-fill {
+      animation: heartbeat 0.6s ease-in-out;
+    }
+
+    @keyframes heartbeat {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #f1f5f9;
+      transition: all 0.2s ease;
+    }
+    
+    .stat-row:hover {
+      background: rgba(102, 126, 234, 0.05);
+      margin: 0 -1.25rem;
+      padding-left: 1.25rem;
+      padding-right: 1.25rem;
+      border-radius: 8px;
+    }
+
+    .stat-row:last-child {
+      border-bottom: none;
+    }
+
+    .stat-label {
+      color: #4a5568;
+      font-size: 0.875rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+    }
+    
+    .stat-label i {
+      color: #667eea;
+      font-size: 0.75rem;
+    }
+
+    .stat-value {
+      color: #2d3748;
+      font-weight: 700;
+      padding: 0.25rem 0.75rem;
+      background: rgba(102, 126, 234, 0.1);
+      border-radius: 12px;
+      font-size: 0.875rem;
+      min-width: 40px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    
+    .stat-value.highlight {
+      background: linear-gradient(135deg, #48bb78, #38a169);
+      color: white;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    /* 统计卡片悬浮效果 */
+    .sidebar-widget:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+    
+    .widget-header {
+      background: linear-gradient(135deg, #84fab0, #8fd3f4);
+      padding: 1.25rem;
+      border-bottom: 3px solid #38b2ac;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .widget-header::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -100%;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+      animation: shimmer 3s infinite;
+    }
+    
+    @keyframes shimmer {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+
+  </style>
+{% endblock %}
+
+{% block title %}首页{% endblock %}
+
+{% block main %}
+  <!-- 板块导航栏 -->
+<!-- 修改第487-506行的导航栏部分 -->
+<!-- 替换第485-540行的导航栏部分 -->
+
+  <!-- 板块导航栏 -->
+  <div class="board-nav-container">
+    <div class="container-fluid">
+      <ul class="nav nav-pills flex-nowrap overflow-auto">
+        <li class="nav-item">
+          <a class="nav-link {% if not selected_board %}active{% endif %}"
+             href="{{ url_for('index') }}">
+            <i class="bi bi-house-fill me-2"></i>全部
+          </a>
+        </li>
+        
+        {% if boards and boards|length > 0 %}
+          {% if session.user_id %}
+            <!-- 已登录用户：分别显示关注的和未关注的板块 -->
+            {% set followed_boards = boards | selectattr('is_followed', 'equalto', 1) | list %}
+            {% set other_boards = boards | selectattr('is_followed', 'equalto', 0) | list %}
+            
+            <!-- 显示关注的板块 + 其他板块（前12个） -->
+            {% for b in (followed_boards + other_boards)[:12] %}
+              <li class="nav-item">
+                <a class="nav-link {% if b.board_id == selected_board %}active{% endif %} {% if b.is_followed == 1 %}followed-board{% endif %}"
+                   href="{{ url_for('index', board_id=b.board_id) }}">
+                  {% if b.is_followed == 1 %}
+                    <i class="bi bi-heart-fill me-2 text-danger"></i>
+                  {% else %}
+                    <i class="bi bi-folder me-2"></i>
+                  {% endif %}
+                  {{ b.name }}
+                </a>
+              </li>
+            {% endfor %}
+          {% else %}
+            <!-- 未登录用户：显示前12个板块 -->
+            {% for b in boards[:12] %}
+              <li class="nav-item">
+                <a class="nav-link {% if b.board_id == selected_board %}active{% endif %}"
+                   href="{{ url_for('index', board_id=b.board_id) }}">
+                  <i class="bi bi-folder me-2"></i>{{ b.name }}
+                </a>
+              </li>
+            {% endfor %}
+          {% endif %}
+          
+          {% if boards|length > 12 %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('all_boards') }}">
+                <i class="bi bi-three-dots me-2"></i>更多…
+              </a>
+            </li>
+          {% endif %}
+        {% else %}
+          <!-- 没有板块数据时的提示 -->
+          <li class="nav-item">
+            <span class="nav-link text-muted">
+              <i class="bi bi-exclamation-triangle me-2"></i>暂无板块数据
+            </span>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+
+
+  <!-- 其余内容保持不变 -->
+  <!-- 内容区域 -->
+  <div class="container">
+    <!-- ...其余代码保持不变... -->
+  <!-- 内容区域 -->
+  <div class="container">
+    <div class="row">
+      <!-- 主内容区域 - 帖子列表 -->
+      <div class="col-12 col-lg-8">
+        <!-- 页面标题 -->
+        {% if search_query %}
+          <div class="search-highlight">
+            <h2 class="mb-0 d-flex align-items-center">
+              <i class="bi bi-search me-2"></i>
+              搜索 "<strong>{{ search_query }}</strong>" 的结果
+            </h2>
+          </div>
+        {% elif selected_board %}
+          <div class="board-title">
+            <i class="bi bi-folder"></i>
+            <h2 class="mb-0">{{ (boards|selectattr('board_id','equalto',selected_board)|list)[0].name }}</h2>
+          </div>
+        {% else %}
+          <h2 class="page-title">
+            <i class="bi bi-fire me-2"></i>最新帖子
+          </h2>
+        {% endif %}
+
+        <!-- 帖子列表 -->
+        <div class="threads-container">
+          {% for th in threads %}
+            <div class="thread-card">
+              <div class="d-flex">
+                <div class="thread-content">
+                  <a href="{{ url_for('thread_detail', thread_id=th.thread_id) }}"
+                     class="thread-title">{{ th.title }}</a>
+                  
+                  <div class="thread-meta">
+                    <i class="bi bi-person-circle me-1"></i>
+                    发布者 
+                    <a href="{{ url_for('user_space', uid=th.author_id) }}" 
+                    class="author-link level-{{ th.author_points|level_class }}">
+                   {{ th.username }}</a>
+                    <span class="user-badge">{{ th.author_points }} 分 · {{ th.author_points|level_name }}</span>
+                    <span class="mx-2">·</span>
+                    <i class="bi bi-clock me-1"></i>
+                    {{ th.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    <span class="mx-2">·</span>
+                    <i class="bi bi-folder me-1"></i>
+                    {{ th.board_name }}
+                  </div>
+                  
+                  <div class="thread-excerpt">
+                    {{ th.excerpt }}{% if th.excerpt|length >= 200 %}…{% endif %}
+                  </div>
+                </div>
+                
+                <div class="thread-stats">
+                  <div class="stat-item">
+                    <i class="bi bi-hand-thumbs-up-fill"></i>
+                    {{ th.like_count }}
+                  </div>
+                  <div class="stat-item">
+                    <i class="bi bi-chat-dots-fill"></i>
+                    {{ th.comment_count }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% else %}
+            <div class="empty-state">
+              <i class="bi bi-inbox"></i>
+              <h3>暂无帖子</h3>
+              <p>这里还没有任何帖子，成为第一个发帖的人吧！</p>
+              {% if session.username %}
+                <a href="{{ url_for('create_thread') }}" class="btn btn-primary mt-3">
+                  <i class="bi bi-plus-circle me-2"></i>发布帖子
+                </a>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- 右侧边栏 - 公告栏 -->
+      <div class="col-12 col-lg-4">
+        {% if announcements %}
+        <div class="announcement-sidebar">
+          <div class="announcement-header">
+            <h4 class="mb-0 d-flex align-items-center">
+              <i class="bi bi-megaphone-fill me-2"></i> 
+              <span>公告栏</span>
+              <span class="announcement-count">{{ announcements|length }}</span>
+            </h4>
+          </div>
+          
+          <div class="announcements-list">
+            {% for ann in announcements %}
+            <div class="announcement-card {% if ann.is_pinned %}pinned{% endif %}">
+              <div class="announcement-content">
+                <h6 class="announcement-title">
+                  {% if ann.is_pinned %}
+                    <i class="bi bi-pin-angle-fill"></i>
+                    <span class="pinned-badge">置顶</span>
+                  {% else %}
+                    <i class="bi bi-info-circle-fill"></i>
+                  {% endif %}
+                  {{ ann.title }}
+                </h6>
+                
+                <div class="announcement-text">
+                  {% if ann.content|length <= 80 %}
+                    {{ ann.content }}
+                  {% else %}
+                    <span class="short-content">{{ ann.content[:80] }}...</span>
+                    <button class="expand-btn" type="button" 
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#announcement-{{ loop.index }}"
+                            aria-expanded="false">
+                      展开
+                    </button>
+                    <div class="collapse mt-2" id="announcement-{{ loop.index }}">
+                      <div class="full-content">
+                        {{ ann.content }}
+                      </div>
+                    </div>
+                  {% endif %}
+                </div>
+                
+                <div class="announcement-meta">
+                  <div class="meta-item">
+                    <i class="bi bi-calendar3"></i>
+                    {{ ann.created_at.strftime('%m-%d %H:%M') }}
+                  </div>
+                  <div class="meta-item">
+                    <i class="bi bi-person"></i>
+                    {{ ann.author_name }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        
+        <!-- 其他侧边栏内容可以在这里添加 -->
+<!-- 替换社区统计侧边栏部分，大约在第750-780行 -->
+
+<!-- 社区统计侧边栏 -->
+<div class="sidebar-widget">
+  <div class="widget-header">
+    <h5 class="mb-0">
+      <i class="bi bi-activity me-2"></i>
+      社区统计
+    </h5>
+  </div>
+  <div class="widget-content">
+    <div class="stat-row">
+      <span class="stat-label">
+        <i class="bi bi-file-post me-1"></i>
+        总帖子数
+      </span>
+      <span class="stat-value">{{ stats.total_threads or 0 }}</span>
+    </div>
+    
+    <div class="stat-row">
+      <span class="stat-label">
+        <i class="bi bi-chat-dots me-1"></i>
+        总评论数
+      </span>
+      <span class="stat-value">{{ stats.total_comments or 0 }}</span>
+    </div>
+    
+    <div class="stat-row">
+      <span class="stat-label">
+        <i class="bi bi-people me-1"></i>
+        注册用户
+      </span>
+      <span class="stat-value">{{ stats.total_users or 0 }}</span>
+    </div>
+    
+    <div class="stat-row">
+      <span class="stat-label">
+        <i class="bi bi-folder me-1"></i>
+        活跃板块
+      </span>
+      <span class="stat-value">{{ stats.active_boards or 0 }}</span>
+    </div>
+    
+    <div class="stat-row">
+      <span class="stat-label">
+        <i class="bi bi-person-check me-1"></i>
+        今日活跃
+      </span>
+      <span class="stat-value highlight">{{ stats.today_active_users or 0 }}</span>
+    </div>
+    
+    <div class="stat-row">
+      <span class="stat-label">
+        <i class="bi bi-calendar-week me-1"></i>
+        本周活跃
+      </span>
+      <span class="stat-value">{{ stats.week_active_users or 0 }}</span>
+    </div>
+    
+    <div class="stat-row">
+      <span class="stat-label">
+        <i class="bi bi-plus-circle me-1"></i>
+        今日新帖
+      </span>
+      <span class="stat-value {% if stats.today_threads > 0 %}highlight{% endif %}">
+        {{ stats.today_threads or 0 }}
+      </span>
+    </div>
+  </div>
+</div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

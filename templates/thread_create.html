@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .create-thread-container {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      overflow: hidden;
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    .create-thread-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 2rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .create-thread-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 50%);
+      animation: float 6s ease-in-out infinite;
+    }
+
+    .create-thread-header h3 {
+      font-weight: 700;
+      font-size: 2rem;
+      margin: 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .create-thread-body {
+      padding: 2.5rem;
+    }
+
+    .form-label {
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+    }
+
+    .form-label i {
+      margin-right: 0.5rem;
+      color: #667eea;
+    }
+
+    .form-select, .form-control {
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 0.875rem 1rem;
+      font-size: 1rem;
+      transition: var(--transition);
+      background: #f8fafc;
+    }
+
+    .form-select:focus, .form-control:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      background: white;
+      transform: translateY(-1px);
+    }
+
+    .form-control[type="text"] {
+      font-weight: 500;
+    }
+
+    .form-control[name="content"] {
+      min-height: 200px;
+      resize: vertical;
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border: none;
+      padding: 0.875rem 2rem;
+      font-weight: 600;
+      font-size: 1.1rem;
+      border-radius: 25px;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .btn-primary:hover::before {
+      left: 100%;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .form-floating-custom {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+
+    .floating-label {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      color: #718096;
+      transition: var(--transition);
+      pointer-events: none;
+      background: white;
+      padding: 0 0.5rem;
+      border-radius: 4px;
+    }
+
+    .form-control:focus + .floating-label,
+    .form-control:not(:placeholder-shown) + .floating-label {
+      top: -0.5rem;
+      font-size: 0.875rem;
+      color: #667eea;
+      font-weight: 600;
+    }
+
+    .character-count {
+      text-align: right;
+      color: #718096;
+      font-size: 0.875rem;
+      margin-top: 0.5rem;
+    }
+
+    .create-tips {
+      background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-left: 4px solid #667eea;
+    }
+
+    .create-tips h6 {
+      color: #2d3748;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .create-tips ul {
+      margin: 0;
+      color: #4a5568;
+    }
+
+    .create-tips li {
+      margin-bottom: 0.5rem;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(180deg); }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .form-group-enhanced {
+      position: relative;
+      margin-bottom: 2rem;
+    }
+
+    .form-group-enhanced .form-control,
+    .form-group-enhanced .form-select {
+      background: rgba(248, 250, 252, 0.8);
+      backdrop-filter: blur(10px);
+    }
+  </style>
+{% endblock %}
+
+{% block title %}发新帖{% endblock %}
+
+{% block main %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-8 col-xl-6">
+      <div class="create-thread-container">
+        <div class="create-thread-header">
+          <h3><i class="bi bi-pencil-square me-2"></i>发布新帖</h3>
+        </div>
+        
+        <div class="create-thread-body">
+          <div class="create-tips">
+            <h6><i class="bi bi-lightbulb me-2"></i>发帖小贴士</h6>
+            <ul class="mb-0">
+              <li>选择合适的板块，让更多感兴趣的用户看到你的内容</li>
+              <li>标题要简洁明了，能够概括帖子的主要内容</li>
+              <li>内容详实，表达清晰，有助于引发有意义的讨论</li>
+            </ul>
+          </div>
+
+          <form method="post">
+            <div class="form-group-enhanced">
+              <label for="board" class="form-label">
+                <i class="bi bi-folder"></i>选择板块
+              </label>
+              <select name="board_id" id="board" class="form-select" required>
+                <option value="">— 请选择一个板块 —</option>
+                {% for b in boards %}
+                  <option value="{{ b.board_id }}">{{ b.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="form-group-enhanced">
+              <label for="title" class="form-label">
+                <i class="bi bi-type"></i>帖子标题
+              </label>
+              <input type="text" id="title" name="title" class="form-control" 
+                     placeholder="请输入一个吸引人的标题..." required>
+            </div>
+
+            <div class="form-group-enhanced">
+              <label for="content" class="form-label">
+                <i class="bi bi-text-paragraph"></i>帖子内容
+              </label>
+              <textarea id="content" name="content" rows="8" class="form-control" 
+                        placeholder="分享你的想法、经验或问题..." required></textarea>
+              <div class="character-count">
+                <span id="char-count">0</span> 字符
+              </div>
+            </div>
+
+            <div class="text-center">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-send me-2"></i>发布帖子
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 字符计数功能
+  document.getElementById('content').addEventListener('input', function() {
+    const count = this.value.length;
+    document.getElementById('char-count').textContent = count;
+  });
+
+  // 表单增强效果
+  document.querySelectorAll('.form-control, .form-select').forEach(input => {
+    input.addEventListener('focus', function() {
+      this.parentElement.style.transform = 'translateY(-2px)';
+    });
+    
+    input.addEventListener('blur', function() {
+      this.parentElement.style.transform = 'translateY(0)';
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+
+{% block title %}与 {{ other_user.username }} 的对话{% endblock %}
+
+{% block main %}
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+      <!-- 聊天头部 -->
+      <div class="chat-header bg-white border-bottom p-3 mb-3 sticky-top">
+        <div class="d-flex align-items-center">
+          <a href="{{ url_for('messages') }}" class="btn btn-outline-secondary btn-sm me-3">
+            <i class="bi bi-arrow-left"></i>
+          </a>
+          <img src="{{ url_for('static', filename='avatars/' + other_user.avatar) }}"
+               class="rounded-circle me-3" width="40" height="40" alt="头像">
+          <div>
+            <h6 class="mb-0">{{ other_user.username }}</h6>
+            <small class="text-muted">点击发送消息</small>
+          </div>
+          <div class="ms-auto">
+            <a href="{{ url_for('user_space', uid=other_user.user_id) }}"
+               class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-person"></i> 查看主页
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 消息列表 -->
+      <div class="chat-messages" id="chatMessages">
+        {% if messages %}
+          {% for msg in messages %}
+          <div class="message-wrapper mb-3 {% if msg.sender_id == session.user_id %}sent{% else %}received{% endif %}"
+               data-message-id="{{ msg.message_id }}">
+            <div class="d-flex {% if msg.sender_id == session.user_id %}justify-content-end{% endif %}">
+              {% if msg.sender_id != session.user_id %}
+              <img src="{{ url_for('static', filename='avatars/' + msg.sender_avatar) }}"
+                   class="rounded-circle me-2" width="32" height="32" alt="头像">
+              {% endif %}
+              
+              <div class="message-content {% if msg.sender_id == session.user_id %}bg-primary text-white{% else %}bg-light{% endif %} 
+                          rounded-3 p-3 max-width-70">
+                <div class="message-text">{{ msg.content }}</div>
+                <div class="message-time mt-1">
+                  <small class="{% if msg.sender_id == session.user_id %}text-white-50{% else %}text-muted{% endif %}">
+                    {{ msg.created_at.strftime('%H:%M') }}
+                  </small>
+                  {% if msg.sender_id == session.user_id %}
+                    <button class="btn btn-sm btn-link text-white-50 p-0 ms-2 delete-message-btn"
+                            data-message-id="{{ msg.message_id }}" title="删除消息">
+                      <i class="bi bi-trash" style="font-size: 0.8rem;"></i>
+                    </button>
+                  {% endif %}
+                </div>
+              </div>
+              
+              {% if msg.sender_id == session.user_id %}
+              <img src="{{ url_for('static', filename='avatars/' + session.avatar) }}"
+                   class="rounded-circle ms-2" width="32" height="32" alt="头像">
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-center py-5 text-muted">
+            <i class="bi bi-chat-dots display-4"></i>
+            <p class="mt-3">开始对话吧！</p>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- 发送消息表单 -->
+      <div class="chat-input bg-white border-top p-3 sticky-bottom">
+        <form id="messageForm" class="d-flex">
+          <div class="flex-grow-1 me-2">
+            <textarea id="messageContent" class="form-control" rows="2" 
+                      placeholder="输入消息..." required></textarea>
+          </div>
+          <div class="d-flex flex-column justify-content-end">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-send"></i>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.chat-header {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 1020;
+}
+
+.chat-messages {
+  min-height: 60vh;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.message-wrapper.sent {
+  margin-left: 20%;
+}
+
+.message-wrapper.received {
+  margin-right: 20%;
+}
+
+.max-width-70 {
+  max-width: 70%;
+}
+
+.chat-input {
+  box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+  z-index: 1020;
+}
+
+.delete-message-btn {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.message-wrapper:hover .delete-message-btn {
+  opacity: 1;
+}
+
+/* 自动滚动到底部 */
+.chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+@media (max-width: 768px) {
+  .message-wrapper.sent {
+    margin-left: 10%;
+  }
+  
+  .message-wrapper.received {
+    margin-right: 10%;
+  }
+  
+  .max-width-70 {
+    max-width: 85%;
+  }
+}
+</style>
+
+<script>
+// 滚动到底部
+function scrollToBottom() {
+  const chatMessages = document.getElementById('chatMessages');
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// 页面加载后滚动到底部
+document.addEventListener('DOMContentLoaded', function() {
+  scrollToBottom();
+  
+  // 发送消息表单提交
+  document.getElementById('messageForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const content = document.getElementById('messageContent').value.trim();
+    if (!content) return;
+    
+    const submitBtn = this.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+    
+    // 发送消息
+    const formData = new FormData();
+    formData.append('content', content);
+    
+    fetch('{{ url_for("send_message", other_user_id=other_user.user_id) }}', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // 添加新消息到界面
+        addMessageToChat({
+          content: data.content,
+          created_at: data.created_at,
+          sender_id: '{{ session.user_id }}',
+          message_id: data.message_id,
+          sender_avatar: '{{ session.avatar }}'
+        });
+        
+        // 清空输入框
+        document.getElementById('messageContent').value = '';
+        scrollToBottom();
+      } else {
+        alert('发送失败: ' + data.error);
+      }
+    })
+    .catch(error => {
+      alert('网络错误，请重试');
+    })
+    .finally(() => {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="bi bi-send"></i>';
+    });
+  });
+  
+  // 删除消息功能
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.delete-message-btn')) {
+      const btn = e.target.closest('.delete-message-btn');
+      const messageId = btn.dataset.messageId;
+      
+      if (confirm('确定要删除这条消息吗？')) {
+        fetch(`/messages/${messageId}/delete`, {
+          method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // 移除消息元素
+            const messageWrapper = document.querySelector(`[data-message-id="${messageId}"]`);
+            messageWrapper.style.opacity = '0';
+            setTimeout(() => messageWrapper.remove(), 300);
+          } else {
+            alert('删除失败: ' + data.error);
+          }
+        })
+        .catch(error => {
+          alert('网络错误，请重试');
+        });
+      }
+    }
+  });
+  
+  // Enter 键发送消息
+  document.getElementById('messageContent').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      document.getElementById('messageForm').dispatchEvent(new Event('submit'));
+    }
+  });
+});
+
+// 添加消息到聊天界面
+function addMessageToChat(message) {
+  const chatMessages = document.getElementById('chatMessages');
+  
+  const messageWrapper = document.createElement('div');
+  messageWrapper.className = 'message-wrapper mb-3 sent';
+  messageWrapper.dataset.messageId = message.message_id;
+  
+  const time = new Date(message.created_at).toLocaleTimeString('zh-CN', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+  
+  messageWrapper.innerHTML = `
+    <div class="d-flex justify-content-end">
+      <div class="message-content bg-primary text-white rounded-3 p-3 max-width-70">
+        <div class="message-text">${message.content}</div>
+        <div class="message-time mt-1">
+          <small class="text-white-50">${time}</small>
+          <button class="btn btn-sm btn-link text-white-50 p-0 ms-2 delete-message-btn"
+                  data-message-id="${message.message_id}" title="删除消息">
+            <i class="bi bi-trash" style="font-size: 0.8rem;"></i>
+          </button>
+        </div>
+      </div>
+      <img src="{{ url_for('static', filename='avatars/' + session.avatar) }}"
+           class="rounded-circle ms-2" width="32" height="32" alt="头像">
+    </div>
+  `;
+  
+  chatMessages.appendChild(messageWrapper);
+}
+</script>
+{% endblock %}

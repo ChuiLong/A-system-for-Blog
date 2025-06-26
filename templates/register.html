@@ -1,0 +1,449 @@
+{% extends 'base.html' %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
+<style>
+  .register-container {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    animation: fadeInUp 0.8s ease-out;
+  }
+
+  .register-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .register-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+  }
+
+  .register-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    position: relative;
+  }
+
+  .register-header h3 {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .register-header .subtitle {
+    color: #718096;
+    font-size: 0.95rem;
+  }
+
+  .register-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #84fab0, #8fd3f4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    box-shadow: 0 8px 25px rgba(132, 250, 176, 0.3);
+  }
+
+  .register-icon i {
+    color: white;
+    font-size: 2rem;
+  }
+
+  .form-floating {
+    position: relative;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-floating .form-control {
+    background: rgba(248, 250, 252, 0.8);
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1rem 1rem 1rem 3rem;
+    font-size: 1rem;
+    transition: var(--transition);
+    backdrop-filter: blur(10px);
+  }
+
+  .form-floating .form-control:focus {
+    background: white;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .form-floating .form-control:valid {
+    border-color: #38b2ac;
+  }
+
+  .form-floating .form-control:invalid:not(:placeholder-shown) {
+    border-color: #fc466b;
+  }
+
+  .form-floating label {
+    padding-left: 3rem;
+    color: #718096;
+    font-weight: 500;
+  }
+
+  .form-floating .form-control:focus ~ label,
+  .form-floating .form-control:not(:placeholder-shown) ~ label {
+    color: #667eea;
+    font-weight: 600;
+  }
+
+  .input-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #a0aec0;
+    z-index: 10;
+    transition: var(--transition);
+  }
+
+  .form-floating .form-control:focus ~ .input-icon {
+    color: #667eea;
+  }
+
+  .form-floating .form-control:valid ~ .input-icon {
+    color: #38b2ac;
+  }
+
+  .btn-register {
+    background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+    border: none;
+    border-radius: 25px;
+    padding: 0.875rem 2rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: white;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    box-shadow: 0 4px 15px rgba(132, 250, 176, 0.3);
+  }
+
+  .btn-register::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+  }
+
+  .btn-register:hover::before {
+    left: 100%;
+  }
+
+  .btn-register:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(132, 250, 176, 0.4);
+  }
+
+  .register-footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .register-footer a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+    transition: var(--transition);
+  }
+
+  .register-footer a:hover {
+    color: #764ba2;
+    text-decoration: underline;
+  }
+
+  .password-strength {
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 2px;
+    margin-top: 0.5rem;
+    overflow: hidden;
+    transition: var(--transition);
+  }
+
+  .password-strength-bar {
+    height: 100%;
+    width: 0%;
+    transition: var(--transition);
+    border-radius: 2px;
+  }
+
+  .strength-weak { 
+    background: linear-gradient(135deg, #fc466b, #3f5efb); 
+    width: 25%; 
+  }
+  .strength-medium { 
+    background: linear-gradient(135deg, #ffa726, #fb8c00); 
+    width: 50%; 
+  }
+  .strength-good { 
+    background: linear-gradient(135deg, #66bb6a, #43a047); 
+    width: 75%; 
+  }
+  .strength-strong { 
+    background: linear-gradient(135deg, #4caf50, #2e7d32); 
+    width: 100%; 
+  }
+
+  .password-tips {
+    background: rgba(102, 126, 234, 0.05);
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: #4a5568;
+    border-left: 3px solid #667eea;
+  }
+
+  .tip-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .tip-item.valid {
+    color: #38b2ac;
+  }
+
+  .tip-item i {
+    font-size: 0.75rem;
+  }
+
+  .decorative-elements {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+    overflow: hidden;
+  }
+
+  .decorative-elements::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(132, 250, 176, 0.1) 0%, transparent 50%);
+    animation: rotate 35s linear infinite;
+  }
+
+  .decorative-elements::after {
+    content: '';
+    position: absolute;
+    bottom: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(143, 211, 244, 0.1) 0%, transparent 50%);
+    animation: rotate 45s linear infinite reverse;
+  }
+
+  @keyframes rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .register-card {
+      margin: 1rem;
+      border-radius: 16px;
+    }
+    
+    .register-icon {
+      width: 60px;
+      height: 60px;
+    }
+    
+    .register-icon i {
+      font-size: 1.5rem;
+    }
+    
+    .register-header h3 {
+      font-size: 1.75rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block title %}注册{% endblock %}
+
+{% block main %}
+<div class="decorative-elements"></div>
+<div class="container register-container">
+  <div class="row justify-content-center w-100">
+    <div class="col-md-6 col-lg-4">
+      <div class="card register-card border-0 shadow-lg">
+        <div class="card-body p-5">
+          <div class="register-header">
+            <div class="register-icon">
+              <i class="bi bi-person-plus"></i>
+            </div>
+            <h3>加入我们</h3>
+            <p class="subtitle">创建你的账户，开始探索精彩的讨论社区</p>
+          </div>
+
+          <form method="post" novalidate>
+            <div class="form-floating">
+              <input type="text" class="form-control" name="username" 
+                     placeholder="用户名" required minlength="3" maxlength="20">
+              <label>用户名</label>
+              <i class="bi bi-person input-icon"></i>
+            </div>
+
+            <div class="form-floating">
+              <input type="email" class="form-control" name="email" 
+                     placeholder="邮箱" required>
+              <label>邮箱地址</label>
+              <i class="bi bi-envelope input-icon"></i>
+            </div>
+
+            <div class="form-floating">
+              <input type="password" class="form-control" name="password" 
+                     placeholder="密码" required minlength="6" id="password">
+              <label>密码</label>
+              <i class="bi bi-lock input-icon"></i>
+              <div class="password-strength">
+                <div class="password-strength-bar" id="strength-bar"></div>
+              </div>
+              <div class="password-tips" id="password-tips">
+                <div class="tip-item" id="length-tip">
+                  <i class="bi bi-circle"></i>
+                  <span>至少6个字符</span>
+                </div>
+                <div class="tip-item" id="char-tip">
+                  <i class="bi bi-circle"></i>
+                  <span>包含字母和数字</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-floating">
+              <input type="password" class="form-control" name="confirm_password" 
+                     placeholder="确认密码" required id="confirm-password">
+              <label>确认密码</label>
+              <i class="bi bi-shield-check input-icon"></i>
+            </div>
+
+            <button class="btn btn-register" type="submit">
+              <i class="bi bi-person-plus me-2"></i>
+              立即注册
+            </button>
+          </form>
+          
+          <div class="register-footer">
+            <small>已有账号？<a href="{{ url_for('login') }}">立即登录</a></small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const passwordInput = document.getElementById('password');
+  const confirmInput = document.getElementById('confirm-password');
+  const strengthBar = document.getElementById('strength-bar');
+  const lengthTip = document.getElementById('length-tip');
+  const charTip = document.getElementById('char-tip');
+
+  function checkPasswordStrength(password) {
+    let strength = 0;
+    
+    // 长度检查
+    if (password.length >= 6) {
+      strength += 1;
+      lengthTip.classList.add('valid');
+      lengthTip.querySelector('i').className = 'bi bi-check-circle-fill';
+    } else {
+      lengthTip.classList.remove('valid');
+      lengthTip.querySelector('i').className = 'bi bi-circle';
+    }
+    
+    // 字符类型检查
+    const hasLetter = /[a-zA-Z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    
+    if (hasLetter && hasNumber) {
+      strength += 1;
+      charTip.classList.add('valid');
+      charTip.querySelector('i').className = 'bi bi-check-circle-fill';
+    } else {
+      charTip.classList.remove('valid');
+      charTip.querySelector('i').className = 'bi bi-circle';
+    }
+    
+    // 复杂度加分
+    if (password.length >= 8) strength += 1;
+    if (/[!@#$%^&*]/.test(password)) strength += 1;
+    
+    // 更新强度条
+    strengthBar.className = 'password-strength-bar';
+    if (strength >= 1) strengthBar.classList.add('strength-weak');
+    if (strength >= 2) strengthBar.classList.add('strength-medium');
+    if (strength >= 3) strengthBar.classList.add('strength-good');
+    if (strength >= 4) strengthBar.classList.add('strength-strong');
+  }
+
+  function checkPasswordMatch() {
+    if (confirmInput.value && passwordInput.value !== confirmInput.value) {
+      confirmInput.setCustomValidity('密码不匹配');
+    } else {
+      confirmInput.setCustomValidity('');
+    }
+  }
+
+  passwordInput.addEventListener('input', function() {
+    checkPasswordStrength(this.value);
+    checkPasswordMatch();
+  });
+
+  confirmInput.addEventListener('input', checkPasswordMatch);
+});
+</script>
+{% endblock %}

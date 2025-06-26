@@ -1,0 +1,519 @@
+{% extends 'base.html' %}
+
+{% block title %}所有板块{% endblock %}
+
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .boards-container {
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    .boards-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 2rem;
+      border-radius: var(--border-radius);
+      margin-bottom: 2rem;
+      box-shadow: var(--card-shadow);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .boards-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="2" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+      opacity: 0.3;
+    }
+
+    .boards-header h2 {
+      font-weight: 700;
+      font-size: 2.5rem;
+      margin: 0;
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+
+    .boards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 2rem;
+    }
+
+    .board-card {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      transition: var(--transition);
+      overflow: hidden;
+      position: relative;
+      border: 2px solid transparent;
+    }
+
+    .board-card.followed {
+      border-color: #667eea;
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+    }
+
+    .board-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+      opacity: 0;
+      transition: var(--transition);
+    }
+
+    .board-card:hover::before {
+      opacity: 1;
+    }
+
+    .board-card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--card-shadow-hover);
+    }
+
+    .board-content {
+      padding: 2rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .board-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .board-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+      flex-shrink: 0;
+    }
+
+    .board-card.followed .board-icon {
+      background: linear-gradient(135deg, #48bb78, #38a169);
+    }
+
+    .board-icon i {
+      font-size: 1.5rem;
+      color: white;
+    }
+
+    .board-card:hover .board-icon {
+      transform: scale(1.1) rotate(5deg);
+    }
+
+    .follow-btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+
+    .follow-btn.btn-follow {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+    }
+
+    .follow-btn.btn-following {
+      background: linear-gradient(135deg, #48bb78, #38a169);
+      color: white;
+    }
+
+    .follow-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .board-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 0.75rem;
+      text-decoration: none;
+      transition: var(--transition);
+    }
+
+    .board-title:hover {
+      color: #667eea;
+      text-decoration: none;
+    }
+
+    .board-description {
+      color: #718096;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+    }
+
+    .board-stats {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.875rem;
+      color: #718096;
+      margin-bottom: 1rem;
+    }
+
+    .stat-group {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .stat-item i {
+      color: #667eea;
+    }
+
+    .board-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .board-btn {
+      background: linear-gradient(135deg, #84fab0, #8fd3f4);
+      color: #2d3748;
+      text-decoration: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 25px;
+      font-weight: 600;
+      transition: var(--transition);
+      border: none;
+      cursor: pointer;
+    }
+
+    .board-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(132, 250, 176, 0.4);
+      color: #2d3748;
+      text-decoration: none;
+    }
+
+    .followed-badge {
+      background: linear-gradient(135deg, #48bb78, #38a169);
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 15px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .followed-section {
+      margin-bottom: 3rem;
+    }
+
+    .section-divider {
+      border: none;
+      height: 2px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      margin: 3rem 0;
+      border-radius: 1px;
+    }
+
+    .section-title {
+      color: #2d3748;
+      font-weight: 700;
+      margin-bottom: 2rem;
+      padding-left: 1rem;
+      border-left: 4px solid #667eea;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .boards-header {
+        padding: 1.5rem;
+      }
+      
+      .boards-header h2 {
+        font-size: 2rem;
+      }
+      
+      .boards-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      
+      .board-content {
+        padding: 1.5rem;
+      }
+
+      .board-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .board-actions {
+        flex-direction: column;
+        gap: 1rem;
+        width: 100%;
+      }
+
+      .board-btn {
+        width: 100%;
+        text-align: center;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block main %}
+<div class="boards-container">
+  <div class="boards-header">
+    <h2>
+      <i class="bi bi-grid-3x3-gap"></i>
+      所有板块
+    </h2>
+  </div>
+
+  <div class="container">
+    {% if session.user_id %}
+      <!-- 已关注的板块 -->
+      {% set followed_boards = boards | selectattr('is_followed', 'equalto', 1) | list %}
+      {% if followed_boards %}
+      <div class="followed-section">
+        <h3 class="section-title">
+          <i class="bi bi-heart-fill me-2"></i>我关注的板块
+        </h3>
+        <div class="boards-grid">
+          {% for b in followed_boards %}
+          <div class="board-card followed">
+            <!-- 移除重复的 followed-badge，只保留一个视觉标识 -->
+            <div class="board-content">
+              <div class="board-header">
+                <div class="board-icon">
+                  <i class="bi bi-heart-fill"></i> <!-- 改为爱心图标表示已关注 -->
+                </div>
+                <!-- 简化关注按钮，改为取消关注的小按钮 -->
+                <button class="follow-btn btn-unfollow" 
+                        onclick="toggleFollow('{{ b.board_id }}', false, this)"
+                        title="取消关注">
+                  <i class="bi bi-heart-break"></i>
+                </button>
+              </div>
+              
+              <a href="{{ url_for('index', board_id=b.board_id) }}" class="board-title">
+                {{ b.name }}
+              </a>
+              
+              <div class="board-description">
+                {{ b.description or '这个板块还没有描述信息。' }}
+              </div>
+              
+              <div class="board-stats">
+                <div class="stat-group">
+                  <div class="stat-item">
+                    <i class="bi bi-file-post"></i>
+                    <span>{{ b.thread_count or 0 }} 帖子</span>
+                  </div>
+                  <div class="stat-item">
+                    <i class="bi bi-people"></i>
+                    <span>{{ b.follower_count or 0 }} 关注</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="board-actions">
+                <a href="{{ url_for('index', board_id=b.board_id) }}" class="board-btn">
+                  <i class="bi bi-arrow-right me-1"></i>
+                  进入板块
+                </a>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <hr class="section-divider">
+      {% endif %}
+
+      <!-- 其他板块 -->
+      {% set other_boards = boards | selectattr('is_followed', 'equalto', 0) | list %}
+      {% if other_boards %}
+      <div>
+        <h3 class="section-title">
+          <i class="bi bi-compass me-2"></i>发现更多板块
+        </h3>
+        <div class="boards-grid">
+          {% for b in other_boards %}
+          <div class="board-card">
+            <div class="board-content">
+              <div class="board-header">
+                <div class="board-icon">
+                  <i class="bi bi-folder"></i>
+                </div>
+                <button class="follow-btn btn-follow" 
+                        onclick="toggleFollow('{{ b.board_id }}', true, this)">
+                  <i class="bi bi-plus me-1"></i>关注
+                </button>
+              </div>
+              
+              <a href="{{ url_for('index', board_id=b.board_id) }}" class="board-title">
+                {{ b.name }}
+              </a>
+              
+              <div class="board-description">
+                {{ b.description or '这个板块还没有描述信息。' }}
+              </div>
+              
+              <div class="board-stats">
+                <div class="stat-group">
+                  <div class="stat-item">
+                    <i class="bi bi-file-post"></i>
+                    <span>{{ b.thread_count or 0 }} 帖子</span>
+                  </div>
+                  <div class="stat-item">
+                    <i class="bi bi-people"></i>
+                    <span>{{ b.follower_count or 0 }} 关注</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="board-actions">
+                <a href="{{ url_for('index', board_id=b.board_id) }}" class="board-btn">
+                  <i class="bi bi-arrow-right me-1"></i>
+                  进入板块
+                </a>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+    {% else %}
+      <!-- 未登录用户看到的所有板块 -->
+      <div class="boards-grid">
+        {% for b in boards %}
+        <div class="board-card">
+          <div class="board-content">
+            <div class="board-header">
+              <div class="board-icon">
+                <i class="bi bi-folder"></i>
+              </div>
+            </div>
+            
+            <a href="{{ url_for('index', board_id=b.board_id) }}" class="board-title">
+              {{ b.name }}
+            </a>
+            
+            <div class="board-description">
+              {{ b.description or '这个板块还没有描述信息。' }}
+            </div>
+            
+            <div class="board-stats">
+              <div class="stat-group">
+                <div class="stat-item">
+                  <i class="bi bi-file-post"></i>
+                  <span>{{ b.thread_count or 0 }} 帖子</span>
+                </div>
+                <div class="stat-item">
+                  <i class="bi bi-people"></i>
+                  <span>{{ b.follower_count or 0 }} 关注</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="board-actions">
+              <a href="{{ url_for('index', board_id=b.board_id) }}" class="board-btn">
+                <i class="bi bi-arrow-right me-1"></i>
+                进入板块
+              </a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+function toggleFollow(boardId, isFollow, btnElement) {
+  {% if not session.user_id %}
+    alert('请先登录');
+    window.location.href = '{{ url_for("login") }}';
+    return;
+  {% endif %}
+
+  const url = isFollow ? `/board/${boardId}/follow` : `/board/${boardId}/unfollow`;
+  
+  // 禁用按钮防止重复点击
+  btnElement.disabled = true;
+  const originalText = btnElement.innerHTML;
+  btnElement.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>处理中...';
+
+  fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // 刷新页面以更新显示
+      window.location.reload();
+    } else {
+      alert(data.error || '操作失败');
+      btnElement.disabled = false;
+      btnElement.innerHTML = originalText;
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('网络错误，请重试');
+    btnElement.disabled = false;
+    btnElement.innerHTML = originalText;
+  });
+}
+</script>
+{% endblock %}
